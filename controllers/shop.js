@@ -34,8 +34,8 @@ const getIndex = (req, res, next) => {
 
 const postCart = (req, res, next) => {
   const productId = req.body.productID;
-  Product.findById(productId, (p) => {
-    Cart.addProduct(productId, p.price);
+  Product.findById(productId, (product) => {
+    Cart.addProduct(productId, product.price);
   });
   res.redirect("/cart");
 };
