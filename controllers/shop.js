@@ -1,72 +1,76 @@
 const Product = require("../models/product");
 const Cart = require("../models/cart");
 
-const getProduct = (req, res, next) => {
+exports.getProducts = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render("shop/product-list", {
       prods: products,
-      DocTitle: "All Products",
+      pageTitle: "All Products",
       path: "/products",
     });
   });
 };
 
-const getIndProduct = (req, res, next) => {
+exports.getProduct = (req, res, next) => {
   const prodId = req.params.productId;
   Product.findById(prodId, (product) => {
     res.render("shop/product-detail", {
-      product,
-      DocTitle: product.title,
+      product: product,
+      pageTitle: product.title,
       path: "/products",
     });
   });
 };
 
-const getIndex = (req, res, next) => {
+exports.getIndex = (req, res, next) => {
   Product.fetchAll((products) => {
     res.render("shop/index", {
       prods: products,
-      DocTitle: "Shop",
+      pageTitle: "Shop",
       path: "/",
     });
   });
 };
 
-const postCart = (req, res, next) => {
-  const productId = req.body.productID;
-  Product.findById(productId, (product) => {
-    Cart.addProduct(productId, product.price);
+exports.getCart = (req, res, next) => {
+  const cartProducts = [];
+  Cart.getCart((cart) => {
+    Product.fetchAll((products) => {
+      for (product of products) {
+        const cartProductData = cart.products.find(
+          (prod) => prod.id === product.id
+        );
+        if (cartProductData) {
+          cartProducts.push({ productData: product, qty: cartProductData.qty });
+        }
+      }
+    });
+  });
+  res.render("shop/cart", {
+    path: "/cart",
+    pageTitle: "Your Cart",
+    products: cartProducts,
+  });
+};
+
+exports.postCart = (req, res, next) => {
+  const prodId = req.body.productId;
+  Product.findById(prodId, (product) => {
+    Cart.addProduct(prodId, product.price);
   });
   res.redirect("/cart");
 };
 
-const getCart = (req, res, next) => {
-  res.render("shop/cart", {
-    path: "/cart",
-    DocTitle: "Your Cart",
-  });
-};
-
-const getOrders = (req, res, next) => {
+exports.getOrders = (req, res, next) => {
   res.render("shop/orders", {
     path: "/orders",
-    DocTitle: "Your Orders",
+    pageTitle: "Your Orders",
   });
 };
 
-const getCheckout = (req, res, next) => {
+exports.getCheckout = (req, res, next) => {
   res.render("shop/checkout", {
     path: "/checkout",
-    DocTitle: "Checkout",
+    pageTitle: "Checkout",
   });
-};
-
-module.exports = {
-  getProduct,
-  getIndex,
-  getCart,
-  getCheckout,
-  getOrders,
-  getIndProduct,
-  postCart,
 };
