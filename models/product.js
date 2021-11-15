@@ -1,27 +1,55 @@
-const Sequelize = require("sequelize");
+const getDb = require("../util/database").getDb;
+const mongodb = require("mongodb");
 
-const sequelize = require("../util/database");
+class Product {
+  constructor(title, price, imageUrl, description, _id) {
+    this.title = title;
+    this.price = price;
+    this.imageUrl = imageUrl;
+    this.description = description;
+    this._id = _id;
+  }
 
-const Product = sequelize.define("product", {
-  id: {
-    type: Sequelize.INTEGER,
-    autoIncrement: true,
-    allowNull: false,
-    primaryKey: true,
-  },
-  title: Sequelize.STRING,
-  price: {
-    type: Sequelize.DOUBLE,
-    allowNull: false,
-  },
-  imageUrl: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-  description: {
-    type: Sequelize.STRING,
-    allowNull: false,
-  },
-});
+  save() {
+    const db = getDb();
+    let dbOp;
+
+    if (this._id) {
+      dbOp = db
+        .collection("products")
+        .updateOne({ _id: new mongodb.ObjectId(this._id) }, { $set: this });
+    } else {
+      dbOp = db.collection("products").insertOne(this);
+    }
+
+    return dbOp
+      .then((resp) => console.log(resp))
+      .catch((err) => console.log(err));
+  }
+
+  static fetchAll() {
+    const db = getDb();
+    return db
+      .collection("products")
+      .find()
+      .toArray()
+      .then((products) => {
+        return products;
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }
+
+  static findById(prodId) {
+    const db = getDb();
+    return db
+      .collection("products")
+      .find({ _id: new mongodb.ObjectId(prodId.trim()) })
+      .next()
+      .then((product) => product)
+      .catch((err) => console.log(err));
+  }
+}
 
 module.exports = Product;
