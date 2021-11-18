@@ -1,3 +1,4 @@
+const User = require("./models/user");
 const path = require("path");
 
 const express = require("express");
@@ -18,7 +19,12 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, "public")));
 
 app.use((req, res, next) => {
-  next();
+  User.findById("6195031df2a02b763cb61ab8")
+    .then((user) => {
+      req.user = new User(user.name, user.email, user.cart, user._id);
+      next();
+    })
+    .catch((err) => console.log(err));
 });
 
 app.use("/admin", adminRoutes);

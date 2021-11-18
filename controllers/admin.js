@@ -15,7 +15,14 @@ exports.postAddProduct = (req, res, next) => {
   const price = req.body.price;
   const description = req.body.description;
 
-  const product = new Product(title, price, imageUrl, description);
+  const product = new Product(
+    title,
+    price,
+    imageUrl,
+    description,
+    null,
+    req.user._id
+  );
   product
     .save()
     .then((resp) => {
@@ -61,7 +68,7 @@ exports.postEditProduct = (req, res, next) => {
     updatedPrice,
     updatedImageUrl,
     updatedDesc,
-    new mongodb.ObjectId(prodId.trim())
+    prodId
   );
 
   product
@@ -72,12 +79,16 @@ exports.postEditProduct = (req, res, next) => {
     .catch((err) => err);
 };
 
-// exports.deletePost = (req, res, next) => {
-//   const prodId = req.body.productId;
+exports.deletePost = (req, res, next) => {
+  const prodId = req.body.productId;
 
-//   Product.delete(prodId);
-//   res.redirect("/admin/products");
-// };
+  Product.deleteById(prodId)
+    .then(() => {
+      console.log("DESTROYED PRODUCT!00");
+      res.redirect("/admin/products");
+    })
+    .catch((err) => console.log(err));
+};
 
 exports.getProducts = (req, res, next) => {
   Product.fetchAll()
